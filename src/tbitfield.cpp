@@ -1,98 +1,127 @@
 // ННГУ, ВМК, Курс "Методы программирования-2", С++, ООП
 //
-// tbitfield.cpp - Copyright (c) Гергель В.П. 07.05.2001
+// tset.cpp - Copyright (c) Гергель В.П. 04.10.2001
 //   Переработано для Microsoft Visual Studio 2008 Сысоевым А.В. (19.04.2015)
 //
-// Битовое поле
+// Множество - реализация через битовые поля
 
-#include "tbitfield.h"
+#include "tset.h"
 
-// Fake variables used as placeholders in tests
-static const int FAKE_INT = -1;
-static TBitField FAKE_BITFIELD(1);
-
-TBitField::TBitField(int len)
+TSet::TSet(int mp) : BitField(mp), MaxPower(mp)
 {
 }
 
-TBitField::TBitField(const TBitField &bf) // конструктор копирования
+// конструктор копирования
+TSet::TSet(const TSet &s) : MaxPower(s.MaxPower), BitField(s.BitField)
 {
 }
 
-TBitField::~TBitField()
+// конструктор преобразования типа
+TSet::TSet(const TBitField &bf) : BitField(bf)
 {
+    MaxPower = bf.GetLength();
 }
 
-int TBitField::GetMemIndex(const int n) const // индекс Мем для бита n
+TSet::operator TBitField()
 {
-    return FAKE_INT;
+    return BitField;
 }
 
-TELEM TBitField::GetMemMask(const int n) const // битовая маска для бита n
+int TSet::GetMaxPower(void) const // получить макс. к-во эл-тов
 {
-    return FAKE_INT;
+    return MaxPower;
 }
 
-// доступ к битам битового поля
-
-int TBitField::GetLength(void) const // получить длину (к-во битов)
+int TSet::IsMember(const int Elem) const // элемент множества?
 {
-  return FAKE_INT;
+    return BitField.GetBit(Elem);
 }
 
-void TBitField::SetBit(const int n) // установить бит
+void TSet::InsElem(const int Elem) // включение элемента множества
 {
+    BitField.SetBit(Elem);
 }
 
-void TBitField::ClrBit(const int n) // очистить бит
+void TSet::DelElem(const int Elem) // исключение элемента множества
 {
+    BitField.ClrBit(Elem);
 }
 
-int TBitField::GetBit(const int n) const // получить значение бита
+// теоретико-множественные операции
+
+TSet& TSet::operator=(const TSet &s) // присваивание
 {
-  return FAKE_INT;
+    BitField = s.BitField;
+    MaxPower = s.MaxPower;
+    return *this;
 }
 
-// битовые операции
-
-TBitField& TBitField::operator=(const TBitField &bf) // присваивание
+int TSet::operator==(const TSet &s) const // сравнение
 {
-    return FAKE_BITFIELD;
+    return (BitField == s.BitField);
 }
 
-int TBitField::operator==(const TBitField &bf) const // сравнение
+int TSet::operator!=(const TSet &s) const // сравнение
 {
-  return FAKE_INT;
+    return (BitField != s.BitField);
 }
 
-int TBitField::operator!=(const TBitField &bf) const // сравнение
+TSet TSet::operator+(const TSet &s) // объединение
 {
-  return FAKE_INT;
+    TSet tmp(BitField | s.BitField);
+    return tmp;
 }
 
-TBitField TBitField::operator|(const TBitField &bf) // операция "или"
+TSet TSet::operator+(const int Elem) // объединение с элементом
 {
-    return FAKE_BITFIELD;
+
+    TSet tmp(BitField);
+    tmp.InsElem(Elem);
+    return tmp;
 }
 
-TBitField TBitField::operator&(const TBitField &bf) // операция "и"
+TSet TSet::operator-(const int Elem) // разность с элементом
 {
-    return FAKE_BITFIELD;
+
+    TSet tmp(BitField);
+    tmp.DelElem(Elem);
+    return tmp;
 }
 
-TBitField TBitField::operator~(void) // отрицание
+TSet TSet::operator*(const TSet &s) // пересечение
 {
-    return FAKE_BITFIELD;
+    TSet res(MaxPower);
+    res.BitField = BitField & s.BitField;
+    return res;
 }
 
-// ввод/вывод
-
-istream &operator>>(istream &istr, TBitField &bf) // ввод
+TSet TSet::operator~(void) // дополнение
 {
+    TSet res(MaxPower);
+    res.BitField = ~BitField;
+    return res;
+}
+
+// перегрузка ввода/вывода
+
+istream &operator>>(istream &istr, TSet &s) // ввод
+{
+    int i = 0;
+    istr >> i;
+    while ((i >= 0) && (i < s.MaxPower))
+    {
+        s.InsElem(i);
+        istr >> i;
+    }
     return istr;
 }
 
-ostream &operator<<(ostream &ostr, const TBitField &bf) // вывод
+ostream& operator<<(ostream &ostr, const TSet &s) // вывод
 {
+    for (int i = 0; i < s.GetMaxPower(); i++)
+        if (s.IsMember(i))
+        {
+            ostr << i;
+        }
     return ostr;
 }
